@@ -1,4 +1,11 @@
 require("@nomicfoundation/hardhat-toolbox");
+require("@nomicfoundation/hardhat-ethers");
+require("@nomicfoundation/hardhat-network-helpers");
+require("@nomicfoundation/hardhat-chai-matchers");
+require("chai");
+require("hardhat-gas-reporter");
+require("solidity-coverage");
+require("@typechain/hardhat");
 require("dotenv").config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
@@ -38,6 +45,7 @@ module.exports = {
     sources: "./src/contracts",
     tests: "./test",
     cache: "./cache",
-    artifacts: "./src/artifacts"
+    artifacts: "./src/artifacts",
+    root: "."
   }
 };
