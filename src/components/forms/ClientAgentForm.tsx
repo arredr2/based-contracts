@@ -1,9 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import { initializeAgent } from '@/lib/agents/baseAgent';
+import { setAgent } from '@/lib/agents/store';
+
+interface ClientCriteria {
+  projectType: string;
+  budgetRange: string;
+  timeframe: string;
+  requirements: string;
+  location: string;
+  qualificationPreferences: string;
+}
 
 export default function ClientAgentForm() {
-  const [criteria, setCriteria] = useState({
+  const [criteria, setCriteria] = useState<ClientCriteria>({
     projectType: '',
     budgetRange: '',
     timeframe: '',
@@ -11,6 +22,9 @@ export default function ClientAgentForm() {
     location: '',
     qualificationPreferences: ''
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -22,11 +36,31 @@ export default function ClientAgentForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setMessage(null);
+
     try {
-      console.log('Training client agent with criteria:', criteria);
-      // Here we'll add the AI agent training logic
+      const agent = await initializeAgent('client');
+      
+      // Format criteria for agent training
+      const trainingPrompt = `
+        Project Type: ${criteria.projectType}
+        Budget Range: ${criteria.budgetRange}
+        Timeframe: ${criteria.timeframe}
+        Location: ${criteria.location}
+        Required Qualifications: ${criteria.qualificationPreferences}
+        Specific Requirements: ${criteria.requirements}
+      `;
+
+      setAgent('client', agent);
+      console.log('Client agent trained with criteria:', criteria);
+
+      setMessage({ type: 'success', text: 'Agent successfully trained!' });
     } catch (error) {
-      console.error('Error training agent:', error);
+      console.error('Error training client agent:', error);
+      setMessage({ type: 'error', text: 'Error training agent. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -46,7 +80,7 @@ export default function ClientAgentForm() {
             className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             required
           >
-            <option value="">Select a project type</option>
+            <option value="">Select project type</option>
             <option value="flooring">Flooring</option>
             <option value="plumbing">Plumbing</option>
             <option value="electrical">Electrical</option>
@@ -130,10 +164,19 @@ export default function ClientAgentForm() {
 
         <button
           type="submit"
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          disabled={isSubmitting}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
         >
-          Train Agent
+          {isSubmitting ? 'Training Agent...' : 'Train Agent'}
         </button>
+
+        {message && (
+          <div className={`mt-4 p-3 rounded ${
+            message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}>
+            {message.text}
+          </div>
+        )}
       </form>
     </div>
   );

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { initializeAgent } from '@/lib/agents/baseAgent';
+import { setAgent } from '@/lib/agents/store';
 
 interface ContractorCriteria {
   services: string;
@@ -25,6 +27,9 @@ export default function ContractorAgentForm() {
     specializations: ''
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setCriteria(prev => ({
@@ -35,11 +40,33 @@ export default function ContractorAgentForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setMessage(null);
+
     try {
-      console.log('Training contractor agent with criteria:', criteria);
-      // AgentKit integration will go here
+      const agent = await initializeAgent('contractor');
+      
+      // Format criteria for agent training
+      const trainingPrompt = `
+        Services: ${criteria.services}
+        Pricing: ${criteria.pricing}
+        Availability: ${criteria.availability}
+        Experience: ${criteria.experience}
+        Licenses: ${criteria.licenses}
+        Service Area: ${criteria.preferredLocationRange}
+        Minimum Job Size: ${criteria.minimumJobSize}
+        Specializations: ${criteria.specializations}
+      `;
+
+      setAgent('contractor', agent);
+      console.log('Contractor agent trained with criteria:', criteria);      
+
+      setMessage({ type: 'success', text: 'Agent successfully trained!' });
     } catch (error) {
-      console.error('Error training agent:', error);
+      console.error('Error training contractor agent:', error);
+      setMessage({ type: 'error', text: 'Error training agent. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -173,10 +200,19 @@ export default function ContractorAgentForm() {
 
         <button
           type="submit"
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          disabled={isSubmitting}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
         >
-          Train Agent
+          {isSubmitting ? 'Training Agent...' : 'Train Agent'}
         </button>
+
+        {message && (
+          <div className={`mt-4 p-3 rounded ${
+            message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}>
+            {message.text}
+          </div>
+        )}
       </form>
     </div>
   );

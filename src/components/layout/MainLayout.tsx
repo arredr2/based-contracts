@@ -33,6 +33,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 >
                   Contractor Dashboard
                 </Link>
+                <Link 
+                  href="/chat"
+                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                 >
+                  Agent Chat
+                 </Link>
               </div>
             </div>
             <div className="flex items-center">

@@ -4,12 +4,14 @@
   "private": true,
   "scripts": {
     "test": "hardhat test",
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@coinbase/cdp-agentkit-core": "^0.0.14",
+    "@coinbase/cdp-langchain": "^0.0.15",
     "@coinbase/onchainkit": "^0.36.9",
     "@web3modal/ethereum": "^2.7.1",
     "@web3modal/wagmi": "^5.1.11",
@@ -36,18 +38,29 @@
     "@types/node": "^20.17.16",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "assert": "^2.1.0",
+    "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
     "chai": "^4.2.0",
+    "crypto-browserify": "^3.12.1",
     "dotenv": "^16.4.7",
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
     "hardhat": "^2.22.18",
     "hardhat-chai-matchers": "^0.0.1",
     "hardhat-gas-reporter": "^1.0.10",
+    "https-browserify": "^1.0.0",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
     "postcss": "^8",
+    "process": "^0.11.10",
     "solidity-coverage": "^0.8.14",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
     "tailwindcss": "^3.4.1",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "url": "^0.11.4"
   }
 }
