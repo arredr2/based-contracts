@@ -10,9 +10,13 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@coinbase/agentkit": "^0.1.1",
+    "@coinbase/agentkit-langchain": "^0.1.0",
     "@coinbase/cdp-agentkit-core": "^0.0.14",
     "@coinbase/cdp-langchain": "^0.0.15",
     "@coinbase/onchainkit": "^0.36.9",
+    "@langchain/core": "^0.3.37",
+    "@langchain/openai": "^0.4.2",
     "@web3modal/ethereum": "^2.7.1",
     "@web3modal/wagmi": "^5.1.11",
     "connectkit": "^1.8.2",

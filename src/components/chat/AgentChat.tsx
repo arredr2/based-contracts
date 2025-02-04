@@ -24,14 +24,19 @@ export default function AgentChat() {
 
     try {
       // Add user message to chat
-      setMessages(prev => [...prev, { sender: 'Client', content: newMessage }]);
-      
-      // Get response from contractor agent
-      const response = await contractorAgent.chat(newMessage);
-      
+      const userMessage = { sender: 'Client', content: newMessage };
+      setMessages(prev => [...prev, userMessage]);
+
+      // Send message using the new sendMessage method
+      const response = await contractorAgent.sendMessage(newMessage);
+
       // Add contractor response to chat
-      setMessages(prev => [...prev, { sender: 'Contractor', content: response }]);
-      
+      const contractorMessage = { 
+        sender: 'Contractor', 
+        content: response.content
+      };
+      setMessages(prev => [...prev, contractorMessage]);
+
       setNewMessage('');
     } catch (error) {
       console.error('Error in agent communication:', error);
