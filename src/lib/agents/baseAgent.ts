@@ -1,85 +1,123 @@
 'use client';
 
-import {
-  AgentKit,
-  CdpWalletProvider,
-  wethActionProvider,
-  walletActionProvider,
-  erc20ActionProvider,
-  cdpApiActionProvider,
-  cdpWalletActionProvider,
-  pythActionProvider,
-} from "@coinbase/agentkit";
-import { ChatOpenAI } from "@langchain/openai";
+import { CdpAgentkit } from "@coinbase/cdp-agentkit-core";
+import { CdpToolkit } from "@coinbase/cdp-langchain";
 
-export const initializeAgent = async (type: 'client' | 'contractor') => {
-    if (!process.env.NEXT_PUBLIC_CDP_API_KEY_NAME || !process.env.NEXT_PUBLIC_CDP_API_KEY_PRIVATE_KEY || !process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
-        throw new Error('Missing required environment variables');
-    }
+interface AgentResponse {
+  message: string;
+  error?: string;
+}
+
+export class BaseAgent {
+  private agent: CdpAgentkit | null = null;
+  private toolkit: CdpToolkit | null = null;
+  private type: 'client' | 'contractor';
+  private initialized: boolean = false;
+  private initError: string | null = null;
+
+  constructor(type: 'client' | 'contractor') {
+    this.type = type;
+  }
+
+  async initialize(): Promise<void> {
+    if (this.initialized) return;
 
     try {
-        // Initialize LLM first since it's more reliable
-        const llm = new ChatOpenAI({
-            apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-            model: "gpt-4",
-        });
+      // Check for required environment variables
+      if (!process.env.NEXT_PUBLIC_CDP_API_KEY_NAME || !process.env.NEXT_PUBLIC_CDP_API_KEY_PRIVATE_KEY) {
+        throw new Error('Missing required CDP API credentials');
+      }
 
-        // Configure CDP Wallet Provider with local API route
-        const config = {
-            apiKeyName: process.env.NEXT_PUBLIC_CDP_API_KEY_NAME,
-            apiKeyPrivateKey: process.env.NEXT_PUBLIC_CDP_API_KEY_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-            networkId: "base-sepolia",
-            baseUrl: '/api/cdp', // Use local API route
-        };
+      // Initialize CDP Agent with proxy path
+      this.agent = new CdpAgentkit({
+        apiKeyName: process.env.NEXT_PUBLIC_CDP_API_KEY_NAME,
+        apiKeyPrivateKey: process.env.NEXT_PUBLIC_CDP_API_KEY_PRIVATE_KEY,
+        baseUrl: '/api/cdp', // Use the proxy path instead of direct CDP API URL
+      });
 
-        try {
-            const walletProvider = await CdpWalletProvider.configureWithWallet(config);
-            console.log('Wallet provider configured:', walletProvider);
+      // Initialize toolkit with appropriate prompt
+      this.toolkit = new CdpToolkit({
+        agent: this.agent,
+        prompt: this.getAgentPrompt(),
+        baseUrl: '/api/cdp', // Use the proxy path for toolkit as well
+      });
 
-            const agentkit = await AgentKit.from({
-                walletProvider,
-                actionProviders: [
-                    wethActionProvider(),
-                    pythActionProvider(),
-                    walletActionProvider(),
-                    erc20ActionProvider(),
-                    cdpApiActionProvider(config),
-                    cdpWalletActionProvider(config),
-                ],
-            });
-
-            console.log('CDP initialization successful:', agentkit);
-        } catch (cdpError) {
-            console.warn('CDP initialization failed, continuing with LLM only:', cdpError);
-            // Continue execution even if CDP fails
-        }
-
-        // Return wrapper with sendMessage method
-        return {
-            async sendMessage(content: string) {
-                try {
-                    const result = await llm.invoke([{
-                        role: 'system',
-                        content: type === 'client'
-                            ? 'You are an AI agent representing a client seeking contractor services.'
-                            : 'You are an AI agent representing a contractor providing services.'
-                    }, {
-                        role: 'user',
-                        content
-                    }]);
-
-                    return {
-                        content: result.content || 'No response received',
-                        role: type
-                    };
-                } catch (error) {
-                    console.error('Error in sendMessage:', error);
-                    throw error;
-                }
-            }
-        };
+      this.initialized = true;
     } catch (error) {
-        console.error('Agent Initialization Error:', error);
-        throw error;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown initialization error';
+      this.initError = `CDP Initialization failed: ${errorMessage}`;
+      console.error(this.initError);
+      
+      // Initialize with LLM-only mode if CDP initialization fails
+      try {
+        this.toolkit = new CdpToolkit({
+          prompt: this.getAgentPrompt(),
+          llmOnly: true
+        });
+        this.initialized = true;
+        console.log('Initialized in LLM-only mode');
+      } catch (llmError) {
+        throw new Error(`Failed to initialize in LLM-only mode: ${llmError}`);
+      }
     }
+  }
+
+  private getAgentPrompt(): string {
+    return this.type === 'client' 
+      ? `You are an AI agent representing a client seeking contractor services. 
+         Your goal is to help negotiate and finalize agreements while protecting the client's interests.
+         Focus on understanding requirements, budget constraints, and timeline needs.`
+      : `You are an AI agent representing a contractor providing services.
+         Your goal is to help communicate service offerings, negotiate terms, and establish clear agreements.
+         Focus on understanding client needs while ensuring fair compensation for services.`;
+  }
+
+  async chat(message: string): Promise<AgentResponse> {
+    try {
+      // Check initialization
+      if (!this.initialized) {
+        await this.initialize();
+      }
+
+      if (!this.toolkit) {
+        throw new Error('Toolkit not initialized');
+      }
+
+      // Use toolkit for message processing
+      const response = await this.toolkit.processMessage(message);
+
+      return {
+        message: response.text || 'No response received',
+      };
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error during chat';
+      console.error('Chat error:', errorMessage);
+      
+      // Return a user-friendly error message
+      return {
+        message: 'I apologize, but I encountered an error processing your message. Please try again.',
+        error: errorMessage
+      };
+    }
+  }
+
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+
+  getInitError(): string | null {
+    return this.initError;
+  }
+}
+
+export const initializeAgent = async (type: 'client' | 'contractor'): Promise<BaseAgent> => {
+  const agent = new BaseAgent(type);
+  try {
+    await agent.initialize();
+  } catch (error) {
+    console.error('Agent initialization failed:', error);
+    // Still return the agent - it will operate in LLM-only mode
+  }
+  return agent;
 };

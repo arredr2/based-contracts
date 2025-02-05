@@ -17,6 +17,7 @@
     "@langchain/core": "^0.3.37",
     "@langchain/langgraph": "^0.2.44",
     "@langchain/openai": "^0.4.2",
+    "@shadcn/ui": "^0.0.4",
     "@web3modal/ethereum": "^2.7.1",
     "@web3modal/wagmi": "^5.1.11",
     "connectkit": "^1.8.2",

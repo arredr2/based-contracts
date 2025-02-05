@@ -38,7 +38,13 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                  >
                   Agent Chat
-                 </Link>
+                </Link>
+                <Link 
+                   href="/transactions"
+                   className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                 >
+                  Transactions
+                </Link>
               </div>
             </div>
             <div className="flex items-center">
