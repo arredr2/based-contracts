@@ -12,18 +12,19 @@
   "dependencies": {
     "@coinbase/agentkit": "^0.1.1",
     "@coinbase/agentkit-langchain": "^0.1.0",
-    "@coinbase/cdp-agentkit-core": "^0.0.14",
     "@coinbase/cdp-langchain": "^0.0.15",
     "@coinbase/onchainkit": "^0.36.9",
     "@langchain/core": "^0.3.37",
+    "@langchain/langgraph": "^0.2.44",
     "@langchain/openai": "^0.4.2",
     "@web3modal/ethereum": "^2.7.1",
     "@web3modal/wagmi": "^5.1.11",
     "connectkit": "^1.8.2",
     "next": "15.1.6",
+    "openai": "^4.82.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "viem": "^2.22.17",
+    "viem": "^2.22.21",
     "wagmi": "^2.14.9"
   },
   "devDependencies": {
