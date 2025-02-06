@@ -7,7 +7,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { MPCWallet } from '@/components/wallet';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import ContractorProfileForm from '@/components/ContractorProfileForm';
 
 interface ProjectContext {
   projectDetails: string;
@@ -191,12 +190,13 @@ export default function ContractorOnboard() {
                         
                         {step.id === 'profile' && (
                           <div className="space-y-4">
-                            {/* Profile creation form will be added here */}
-                            <Button
-                              onClick={() => updateStepStatus('profile', 'completed')}
-                            >
-                              Complete Profile
-                            </Button>
+                            {projectContext && (
+                              <ContractorProfileForm
+                                onComplete={() => updateStepStatus('profile', 'completed')}
+                                inviteId={params.inviteId as string}
+                                clientAddress={projectContext.clientAddress}
+                              />
+                            )}
                           </div>
                         )}
                       </div>
