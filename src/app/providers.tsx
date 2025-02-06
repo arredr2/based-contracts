@@ -11,8 +11,10 @@ const queryClient = new QueryClient();
 const config = createConfig(
   getDefaultConfig({
     appName: 'BasedContracts',
-    walletConnectProjectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID,
+    walletConnectProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '',
     chains: [base],
+    appDescription: "Manage contractor agreements with AI assistance",
+    appUrl: "https://based-contracts.vercel.app",
   })
 );
 
@@ -22,8 +24,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <WagmiConfig config={config}>
         <ConnectKitProvider>
           <OnchainKitProvider
-            apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
-            projectId={process.env.NEXT_PUBLIC_CDP_PROJECT_ID}
+            apiKeyName={process.env.NEXT_PUBLIC_CDP_API_KEY_NAME}
+            apiKeyPrivateKey={process.env.NEXT_PUBLIC_CDP_API_KEY_PRIVATE_KEY}
             chain={base}
           >
             {children}

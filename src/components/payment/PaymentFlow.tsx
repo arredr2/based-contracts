@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAccount, useBalance } from 'wagmi';
-import { useNetwork } from 'wagmi/chains';
+import { useAccount, useBalance, useNetwork } from 'wagmi';
 import { parseEther } from 'viem';
+import { base } from 'viem/chains';
 import { FundButton, getOnrampBuyUrl } from '@coinbase/onchainkit/fund';
 import { Loader2 } from 'lucide-react';
 

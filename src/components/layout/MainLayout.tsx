@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { ConnectKitButton } from 'connectkit';
 import Link from 'next/link';
@@ -9,15 +11,15 @@ type MainLayoutProps = {
 
 const MainLayout = ({ children }: MainLayoutProps) => {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 flex flex-col">
       <nav className="bg-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
                 <Link href="/" className="flex items-center space-x-2">
-                  <div className="h-10 w-10"> {/* Fixed size container for logo */}
-                    <Logo />
+                  <div className="w-10 h-10 relative">
+                    <Logo className="w-full h-full" />
                   </div>
                   <span className="text-xl font-bold">BasedContracts</span>
                 </Link>
@@ -49,17 +51,17 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           </div>
         </div>
       </nav>
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="flex-grow max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {children}
       </main>
-      <footer className="bg-white shadow-lg mt-auto">
+      <footer className="bg-white shadow-lg">
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
-              <div className="h-6 w-6"> {/* Smaller logo in footer */}
-                <Logo />
+              <div className="w-6 h-6 relative">
+                <Logo className="w-full h-full" />
               </div>
-              <span className="text-sm text-gray-500">© 2025 BasedContracts</span>
+              <span className="text-sm text-gray-500">© {new Date().getFullYear()} BasedContracts</span>
             </div>
           </div>
         </div>

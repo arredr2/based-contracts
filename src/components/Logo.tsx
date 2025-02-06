@@ -27,16 +27,20 @@ const Logo: React.FC<LogoProps> = ({
 }) => {
   return (
     <div 
-      className={`relative ${className}`}
+      className={`relative w-full h-full inline-block ${className}`}
       onClick={onClick}
-      style={{ cursor: onClick ? 'pointer' : 'default' }}
+      style={{ 
+        cursor: onClick ? 'pointer' : 'default',
+        aspectRatio: variant === 'square' ? '1' : 'auto'
+      }}
     >
       <Image
-        src="/BASEDCONTRACTS_LOGO-09.svg"
+        src={variant === 'square' ? '/BASEDCONTRACTS_LOGO-09.svg' : '/BASEDCONTRACTS_BANNER.svg'}
         alt={alt}
         fill={true}
         className={`${preserveAspectRatio ? 'object-contain' : 'object-fill'}`}
-        priority={true} // Load logo with high priority
+        priority={true}
+        sizes="(max-width: 768px) 40px, 40px"
       />
     </div>
   );
