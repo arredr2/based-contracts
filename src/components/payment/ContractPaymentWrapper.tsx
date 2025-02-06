@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAccount } from 'wagmi';
-import CreateAgreementForm from '@/components/CreateAgreementForm';
+import CreateAgreementForm from '@/components/forms/CreateAgreementForm';
 import PaymentFlow from '@/components/payment/PaymentFlow';
 
 type ContractDetails = {
