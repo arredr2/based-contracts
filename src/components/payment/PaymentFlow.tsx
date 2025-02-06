@@ -1,10 +1,9 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { useAccount, useBalance, useNetwork } from 'wagmi';
 import { parseEther } from 'viem';
 import { FundButton, getOnrampBuyUrl } from '@coinbase/onchainkit/fund';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 
 const PaymentFlow = ({ 
@@ -77,11 +76,12 @@ const PaymentFlow = ({
   }, [hasBalance, isFunding]);
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Payment Details</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h2 className="text-xl font-semibold text-gray-900">Payment Details</h2>
+      </div>
+
+      <div className="p-6 space-y-4">
         {/* Payment Summary */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="flex justify-between mb-2">
@@ -123,52 +123,55 @@ const PaymentFlow = ({
 
         {/* Status Messages */}
         {paymentStatus === 'error' && (
-          <Alert variant="destructive">
-            <AlertDescription>
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+            <p className="text-sm">
               There was an error processing your payment. Please try again.
-            </AlertDescription>
-          </Alert>
+            </p>
+          </div>
         )}
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-2">
           {paymentStatus === 'initial' && (
-            <Button
+            <button
               onClick={initializePayment}
-              className="w-full"
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
             >
               Continue to Payment
-            </Button>
+            </button>
           )}
 
           {paymentStatus === 'ready' && (
-            <Button
+            <button
               onClick={confirmPayment}
-              className="w-full"
               disabled={!hasBalance}
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Confirm Payment
-            </Button>
+            </button>
           )}
 
           {paymentStatus === 'processing' && (
-            <Button disabled className="w-full">
+            <button
+              disabled
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            >
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Processing Payment
-            </Button>
+            </button>
           )}
         </div>
 
         {/* Success Message */}
         {paymentStatus === 'completed' && (
-          <Alert className="bg-green-50 border-green-200">
-            <AlertDescription className="text-green-800">
+          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md">
+            <p className="text-sm">
               Payment completed successfully!
-            </AlertDescription>
-          </Alert>
+            </p>
+          </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

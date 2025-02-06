@@ -1,7 +1,7 @@
+'use client';
+
 import React, { useState } from 'react';
 import { useAccount } from 'wagmi';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import CreateAgreementForm from '@/components/CreateAgreementForm';
 import PaymentFlow from '@/components/payment/PaymentFlow';
 
@@ -32,16 +32,16 @@ export default function ContractPaymentWrapper() {
   
   if (!address) {
     return (
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Connect Wallet</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">Connect Wallet</h2>
+        </div>
+        <div className="p-6">
           <p className="text-gray-600 mb-4">
             Please connect your wallet to create a contract agreement.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
   
@@ -61,11 +61,11 @@ export default function ContractPaymentWrapper() {
       )}
       
       {step === 'success' && (
-        <Card className="w-full max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle>Contract Created Successfully</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">Contract Created Successfully</h2>
+          </div>
+          <div className="p-6">
             <div className="space-y-4">
               <p className="text-gray-600">
                 Your contract has been created and payment has been processed.
@@ -89,21 +89,22 @@ export default function ContractPaymentWrapper() {
               )}
               
               <div className="flex justify-between mt-6">
-                <Button
+                <button
                   onClick={handleStartNew}
-                  variant="outline"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
                   Create Another Contract
-                </Button>
-                <Button
+                </button>
+                <button
                   onClick={() => window.location.href = '/dashboard'}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
                   View My Contracts
-                </Button>
+                </button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

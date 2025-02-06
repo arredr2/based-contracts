@@ -2,7 +2,6 @@
 
 import MainLayout from '@/components/layout/MainLayout';
 import ContractPaymentWrapper from '@/components/payment/ContractPaymentWrapper';
-import Logo10Svg from '@/page/basedcontracts_logo_10.svg';
 
 export default function Home() {
   return (
