@@ -2,11 +2,10 @@
 const webpack = require('webpack');
 
 const nextConfig = {
-  // Explicitly load environment variables
-  env: {
-    NEXT_PUBLIC_CDP_API_KEY_NAME: process.env.NEXT_PUBLIC_CDP_API_KEY_NAME,
-    NEXT_PUBLIC_CDP_API_KEY_PRIVATE_KEY: process.env.NEXT_PUBLIC_CDP_API_KEY_PRIVATE_KEY,
-  },
+  // Explicitly enable server-side rendering
+  reactStrictMode: true,
+  swcMinify: true,
+
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -27,11 +26,6 @@ const nextConfig = {
         process: require.resolve('process/browser'),
       };
 
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        process: "process/browser"
-      };
-
       config.plugins = [
         ...config.plugins,
         new webpack.ProvidePlugin({
@@ -41,7 +35,12 @@ const nextConfig = {
     }
 
     return config;
-  }
+  },
+
+  // Add image domains if you're using next/image with external sources
+  images: {
+    domains: ['api.placeholder.com'],
+  },
 };
 
 module.exports = nextConfig;

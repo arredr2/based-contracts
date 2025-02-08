@@ -1,10 +1,10 @@
-// vercel.json
 {
   "version": 2,
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
+  "outputDirectory": ".next",
   "env": {
     "NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID": "@walletconnect_project_id",
     "NEXT_PUBLIC_CDP_API_KEY_NAME": "@cdp_api_key_name",
@@ -38,9 +38,11 @@
         "x-frame-options": "DENY",
         "x-content-type-options": "nosniff",
         "referrer-policy": "same-origin",
-        "strict-transport-security": "max-age=31536000; includeSubDomains"
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "permissions-policy": "camera=(), microphone=(), geolocation=()"
       },
       "continue": true
     }
-  ]
+  ],
+  "regions": ["iad1"]
 }
