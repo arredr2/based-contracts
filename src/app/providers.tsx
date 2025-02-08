@@ -5,6 +5,7 @@ import { OnchainKitProvider } from '@coinbase/onchainkit';
 import { WagmiConfig, createConfig } from 'wagmi';
 import { ConnectKitProvider, getDefaultConfig } from 'connectkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ToastProvider } from '@/components/ui';
 
 const queryClient = new QueryClient();
 
@@ -28,7 +29,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
             apiKeyPrivateKey={process.env.NEXT_PUBLIC_CDP_API_KEY_PRIVATE_KEY}
             chain={base}
           >
-            {children}
+            <ToastProvider>
+              {children}
+            </ToastProvider>
           </OnchainKitProvider>
         </ConnectKitProvider>
       </WagmiConfig>

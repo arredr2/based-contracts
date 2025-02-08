@@ -1,213 +1,191 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
-import { useAccount, useConnect } from 'wagmi';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
-import { MPCWallet } from '@/components/wallet';
-import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+'use client';
 
-interface ProjectContext {
-  projectDetails: string;
+import React, { useState } from 'react';
+import { useAccount } from 'wagmi';
+import { Card, CardContent, CardHeader, CardTitle, Button, Alert, AlertDescription, useToast } from '@/components/ui';
+import { Loader2 } from 'lucide-react';
+
+interface ContractorProfileFormProps {
+  inviteId: string;
   clientAddress: string;
-  timestamp: number;
+  onComplete: () => void;
 }
 
-interface OnboardingStep {
-  id: string;
-  title: string;
-  status: 'pending' | 'active' | 'completed' | 'error';
-  description: string;
-}
-
-export default function ContractorOnboard() {
-  const params = useParams();
-  const searchParams = useSearchParams();
-  const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
+const ContractorProfileForm = ({
+  inviteId,
+  clientAddress,
+  onComplete
+}: ContractorProfileFormProps) => {
+  const { address } = useAccount();
   const { toast } = useToast();
-  
-  const [isLoading, setIsLoading] = useState(true);
-  const [projectContext, setProjectContext] = useState<ProjectContext | null>(null);
-  const [steps, setSteps] = useState<OnboardingStep[]>([
-    {
-      id: 'invite',
-      title: 'Verify Invitation',
-      status: 'pending',
-      description: 'Verifying your invitation link...'
-    },
-    {
-      id: 'wallet',
-      title: 'Connect Wallet',
-      status: 'pending',
-      description: 'Connect your existing wallet or create a new one'
-    },
-    {
-      id: 'profile',
-      title: 'Create Profile',
-      status: 'pending',
-      description: 'Set up your contractor profile'
-    }
-  ]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    serviceType: '',
+    experience: '',
+    rate: '',
+    availability: '',
+    location: ''
+  });
 
-  useEffect(() => {
-    const verifyInvite = async () => {
-      try {
-        const inviteId = params.inviteId as string;
-        const contextParam = searchParams.get('context');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!address) return;
 
-        if (!contextParam) {
-          throw new Error('Invalid invitation link');
-        }
+    setIsSubmitting(true);
 
-        // Decode context from base64
-        const decodedContext = JSON.parse(
-          Buffer.from(contextParam, 'base64').toString()
-        ) as ProjectContext;
+    try {
+      const response = await fetch('/api/contractor-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inviteId,
+          contractorAddress: address,
+          clientAddress,
+          ...formData
+        }),
+      });
 
-        // Verify invitation hasn't expired (7 days)
-        const expirationTime = decodedContext.timestamp + 7 * 24 * 60 * 60 * 1000;
-        if (Date.now() > expirationTime) {
-          throw new Error('Invitation has expired');
-        }
-
-        setProjectContext(decodedContext);
-        updateStepStatus('invite', 'completed');
-        updateStepStatus('wallet', 'active');
-      } catch (error) {
-        console.error('Verification error:', error);
-        updateStepStatus('invite', 'error');
-        toast({
-          title: 'Invalid Invitation',
-          description: error instanceof Error ? error.message : 'Failed to verify invitation',
-          variant: 'destructive'
-        });
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        throw new Error('Failed to create profile');
       }
-    };
 
-    verifyInvite();
-  }, [params.inviteId, searchParams]);
+      toast({
+        title: 'Profile Created',
+        description: 'Your contractor profile has been created successfully.'
+      });
 
-  useEffect(() => {
-    if (isConnected && address) {
-      updateStepStatus('wallet', 'completed');
-      updateStepStatus('profile', 'active');
-    }
-  }, [isConnected, address]);
-
-  const updateStepStatus = (stepId: string, status: OnboardingStep['status']) => {
-    setSteps(prevSteps =>
-      prevSteps.map(step =>
-        step.id === stepId ? { ...step, status } : step
-      )
-    );
-  };
-
-  const handleConnect = async () => {
-    const connector = connectors[0]; // Using first available connector
-    if (connector) {
-      try {
-        await connect({ connector });
-      } catch (error) {
-        console.error('Connection error:', error);
-        toast({
-          title: 'Connection Failed',
-          description: 'Failed to connect wallet',
-          variant: 'destructive'
-        });
-      }
+      onComplete();
+    } catch (error) {
+      console.error('Profile creation error:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to create profile',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   return (
-    <div className="container max-w-2xl mx-auto py-8 px-4">
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Contractor Onboarding</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {projectContext && (
-            <Alert className="mb-6">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Project Details</AlertTitle>
-              <AlertDescription>
-                {projectContext.projectDetails}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <div className="space-y-6">
-            {steps.map((step, index) => (
-              <div
-                key={step.id}
-                className={`p-4 rounded-lg border ${
-                  step.status === 'active'
-                    ? 'border-blue-200 bg-blue-50'
-                    : 'border-gray-200'
-                }`}
-              >
-                <div className="flex items-start">
-                  <div className="flex-shrink-0">
-                    {step.status === 'completed' ? (
-                      <CheckCircle className="h-6 w-6 text-green-500" />
-                    ) : step.status === 'error' ? (
-                      <AlertCircle className="h-6 w-6 text-red-500" />
-                    ) : step.status === 'active' ? (
-                      <div className="h-6 w-6 rounded-full bg-blue-500" />
-                    ) : (
-                      <div className="h-6 w-6 rounded-full bg-gray-200" />
-                    )}
-                  </div>
-                  <div className="ml-3 flex-1">
-                    <h3 className="text-lg font-medium">
-                      {index + 1}. {step.title}
-                    </h3>
-                    <p className="text-sm text-gray-500">{step.description}</p>
-
-                    {step.status === 'active' && (
-                      <div className="mt-4">
-                        {step.id === 'wallet' && (
-                          <div className="space-y-4">
-                            {!isConnected && (
-                              <Button onClick={handleConnect}>
-                                Connect Wallet
-                              </Button>
-                            )}
-                            <MPCWallet />
-                          </div>
-                        )}
-                        
-                        {step.id === 'profile' && (
-                          <div className="space-y-4">
-                            {projectContext && (
-                              <ContractorProfileForm
-                                onComplete={() => updateStepStatus('profile', 'completed')}
-                                inviteId={params.inviteId as string}
-                                clientAddress={projectContext.clientAddress}
-                              />
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+    <Card>
+      <CardHeader>
+        <CardTitle>Create Your Contractor Profile</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Full Name</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full p-2 border rounded-md"
+              required
+            />
           </div>
-        </CardContent>
-      </Card>
-    </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Service Type</label>
+            <select
+              name="serviceType"
+              value={formData.serviceType}
+              onChange={handleChange}
+              className="w-full p-2 border rounded-md"
+              required
+            >
+              <option value="">Select service type</option>
+              <option value="plumbing">Plumbing</option>
+              <option value="electrical">Electrical</option>
+              <option value="carpentry">Carpentry</option>
+              <option value="painting">Painting</option>
+              <option value="flooring">Flooring</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Years of Experience</label>
+            <input
+              type="number"
+              name="experience"
+              value={formData.experience}
+              onChange={handleChange}
+              className="w-full p-2 border rounded-md"
+              min="0"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Hourly Rate (ETH)</label>
+            <input
+              type="text"
+              name="rate"
+              value={formData.rate}
+              onChange={handleChange}
+              className="w-full p-2 border rounded-md"
+              placeholder="0.1"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Availability</label>
+            <input
+              type="text"
+              name="availability"
+              value={formData.availability}
+              onChange={handleChange}
+              className="w-full p-2 border rounded-md"
+              placeholder="e.g., Weekdays 9-5"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Service Location</label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              className="w-full p-2 border rounded-md"
+              placeholder="e.g., Austin, TX"
+              required
+            />
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Profile...
+              </>
+            ) : (
+              'Create Profile'
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
-}
+};
+
+export default ContractorProfileForm;

@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { base } from 'viem/chains';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, Button, Alert, AlertDescription, Badge } from '@/components/ui';
 import { Loader2, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import { 
   TransactionWorkflowService,
@@ -179,7 +175,7 @@ const TransactionApproval: React.FC<TransactionApprovalProps> = ({
           {workflow && (
             <div className="space-y-4">
               <h3 className="text-sm font-medium">Approval Steps</h3>
-              {workflow.steps.map((step, index) => (
+              {workflow.steps.map((step) => (
                 <div
                   key={step.id}
                   className="flex items-center justify-between p-3 border rounded-lg"
@@ -191,6 +187,26 @@ const TransactionApproval: React.FC<TransactionApprovalProps> = ({
                         <Badge variant="secondary">Required</Badge>
                       )}
                     </div>
+                    {step.approver && (
+                      <p className="text-sm text-gray-500 font-mono mt-1">
+                        {step.approver}
+                      </p>
+                    )}
+                    {step.comments && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        {step.comments}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    {getStepStatus(step.status)}
+                    {step.timestamp && (
+                      <span className="text-sm text-gray-500">
+                        {new Date(step.timestamp).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -199,11 +215,11 @@ const TransactionApproval: React.FC<TransactionApprovalProps> = ({
           {canApprove && (
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Comments</h3>
-              <Textarea
+              <textarea
                 value={comments}
                 onChange={(e) => setComments(e.target.value)}
                 placeholder="Add any comments about your decision..."
-                className="h-24"
+                className="w-full h-24 px-3 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           )}
@@ -298,23 +314,3 @@ const TransactionApproval: React.FC<TransactionApprovalProps> = ({
 };
 
 export default TransactionApproval;
-                    {step.approver && (
-                      <p className="text-sm text-gray-500 font-mono mt-1">
-                        {step.approver}
-                      </p>
-                    )}
-                    {step.comments && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        {step.comments}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    {getStepStatus(step.status)}
-                    {step.timestamp && (
-                      <span className="text-sm text-gray-500">
-                        {new Date(step.timestamp).toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-                </div>

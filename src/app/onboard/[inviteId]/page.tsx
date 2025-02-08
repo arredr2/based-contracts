@@ -3,12 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useAccount, useConnect } from 'wagmi';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import { Card, CardContent, CardHeader, CardTitle, Button, Alert, AlertDescription, AlertTitle, useToast } from '@/components/ui';
 import { MPCWallet } from '@/components/wallet';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ContractorProfileForm } from '@/components/forms/ContractorProfileForm';
 
 interface ProjectContext {

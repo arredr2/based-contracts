@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { CdpMPCWallet } from '@coinbase/cdp-agentkit-core';
-import { useToast } from '@/components/ui/use-toast';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useToast, Alert, AlertDescription, AlertTitle, Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui';
 import { Loader2 } from 'lucide-react';
 
 interface Transaction {
