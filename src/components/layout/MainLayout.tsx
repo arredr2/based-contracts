@@ -17,11 +17,10 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
-                <Link href="/" className="flex items-center space-x-2">
-                  <div className="w-10 h-10 relative">
-                    <Logo className="w-full h-full" />
+                <Link href="/" className="flex items-center">
+                  <div className="h-10 w-40 relative">
+                    <Logo variant="banner" className="w-full h-full" />
                   </div>
-                  <span className="text-xl font-bold">BasedContracts</span>
                 </Link>
               </div>
               <div className="ml-6 flex space-x-4 items-center">
