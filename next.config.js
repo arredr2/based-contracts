@@ -4,7 +4,6 @@ const webpack = require('webpack');
 const nextConfig = {
   // Explicitly enable server-side rendering
   reactStrictMode: true,
-  swcMinify: true,
 
   webpack: (config, { isServer }) => {
     if (!isServer) {

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useAccount, useConnect } from 'wagmi';
@@ -7,6 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { MPCWallet } from '@/components/wallet';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ContractorProfileForm } from '@/components/forms/ContractorProfileForm';
 
 interface ProjectContext {
   projectDetails: string;
@@ -89,7 +92,7 @@ export default function ContractorOnboard() {
     };
 
     verifyInvite();
-  }, [params.inviteId, searchParams]);
+  }, [params.inviteId, searchParams, toast]);
 
   useEffect(() => {
     if (isConnected && address) {
