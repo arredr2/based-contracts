@@ -7,7 +7,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy:contract:testnet": "hardhat run scripts/deploy-all.js --network baseSepolia",
+    "deploy:contract:mainnet": "hardhat run scripts/deploy-all.js --network base",
+    "verify:contract:testnet": "hardhat run scripts/verify-deployment.js --network baseSepolia",
+    "verify:contract:mainnet": "hardhat run scripts/verify-deployment.js --network base",
+    "generate:env:testnet": "node scripts/generate-env.js baseSepolia",
+    "generate:env:mainnet": "node scripts/generate-env.js base",
+    "deploy:full:testnet": "npm run deploy:contract:testnet && npm run verify:contract:testnet && npm run generate:env:testnet",
+    "deploy:full:mainnet": "npm run deploy:contract:mainnet && npm run verify:contract:mainnet && npm run generate:env:mainnet"
   },
   "dependencies": {
     "@coinbase/agentkit": "^0.1.1",

@@ -1,0 +1,46 @@
+// vercel.json
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID": "@walletconnect_project_id",
+    "NEXT_PUBLIC_CDP_API_KEY_NAME": "@cdp_api_key_name",
+    "NEXT_PUBLIC_CDP_API_KEY_PRIVATE_KEY": "@cdp_api_key_private_key",
+    "NEXT_PUBLIC_OPENAI_API_KEY": "@openai_api_key",
+    "NEXT_PUBLIC_APP_URL": "@app_url",
+    "NEXT_PUBLIC_ONRAMP_API_KEY": "@onramp_api_key",
+    "NEXT_PUBLIC_FUND_API_KEY": "@fund_api_key",
+    "NEXT_PUBLIC_ONCHAINKIT_API_KEY": "@onchainkit_api_key",
+    "NEXT_PUBLIC_CDP_PROJECT_ID": "@cdp_project_id",
+    "DATADOG_API_KEY": "@datadog_api_key",
+    "NEWRELIC_LICENSE_KEY": "@newrelic_license_key"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_CONTRACT_ADDRESS": "@contract_address",
+      "NEXT_PUBLIC_NETWORK": "@network"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "headers": {
+        "cache-control": "s-maxage=0"
+      },
+      "continue": true
+    },
+    {
+      "src": "/(.*)",
+      "headers": {
+        "x-frame-options": "DENY",
+        "x-content-type-options": "nosniff",
+        "referrer-policy": "same-origin",
+        "strict-transport-security": "max-age=31536000; includeSubDomains"
+      },
+      "continue": true
+    }
+  ]
+}
