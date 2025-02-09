@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { CdpMPCWallet } from '@coinbase/cdp-agentkit-core';
-import { useToast, Alert, AlertDescription, AlertTitle, Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui';
+import { useToast } from '@/components/ui/Toast';
+import { Alert, AlertDescription, AlertTitle, Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui';
 import { Loader2 } from 'lucide-react';
 
 interface Transaction {
@@ -32,11 +33,7 @@ const MPCWallet: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    initializeWallet();
-  }, [connectedAddress]);
-
-  const initializeWallet = async () => {
+  const initializeWallet = useCallback(async () => {
     if (!connectedAddress) return;
 
     try {
@@ -65,7 +62,8 @@ const MPCWallet: React.FC = () => {
       setWalletState({
         address: newWallet.address,
         balance: await newWallet.getBalance(),
-        status: 'ready'
+        status: 'ready',
+        pendingTransactions: []
       });
 
       // Store wallet data securely
@@ -94,7 +92,13 @@ const MPCWallet: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [connectedAddress, toast]);
+
+  useEffect(() => {
+    if (connectedAddress) {
+      initializeWallet();
+    }
+  }, [connectedAddress, initializeWallet]);
 
   const handleRecovery = async () => {
     if (!connectedAddress || !wallet) return;
@@ -102,7 +106,6 @@ const MPCWallet: React.FC = () => {
     try {
       setWalletState(prev => ({ ...prev, status: 'recovering' }));
       
-      // Initiate wallet recovery process
       await wallet.initiateRecovery();
       
       toast({
@@ -110,149 +113,12 @@ const MPCWallet: React.FC = () => {
         description: 'Wallet recovery process started. Please wait 24 hours.',
       });
 
-      // Store recovery state
       localStorage.setItem(`mpc-wallet-recovery-${connectedAddress}`, Date.now().toString());
     } catch (error) {
       console.error('Recovery error:', error);
       toast({
         title: 'Recovery Error',
         description: 'Failed to start wallet recovery',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const createTransaction = async (to: string, amount: string) => {
-    if (!wallet) return;
-
-    try {
-      const response = await fetch('/api/cdp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          type: 'mpc_transaction',
-          to,
-          amount,
-          walletAddress: walletState.address
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create transaction');
-      }
-
-      const data = await response.json();
-      
-      setWalletState(prev => ({
-        ...prev,
-        pendingTransactions: [
-          ...prev.pendingTransactions,
-          {
-            id: data.transactionId,
-            to,
-            amount,
-            status: 'pending',
-            createdAt: Date.now()
-          }
-        ]
-      }));
-
-      toast({
-        title: 'Transaction Created',
-        description: 'Please approve the transaction in your wallet.',
-      });
-    } catch (error) {
-      console.error('Transaction creation error:', error);
-      toast({
-        title: 'Transaction Error',
-        description: 'Failed to create transaction',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const approveTransaction = async (transactionId: string) => {
-    if (!wallet) return;
-
-    try {
-      const response = await fetch('/api/cdp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          type: 'mpc_approve',
-          transactionId,
-          walletAddress: walletState.address
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to approve transaction');
-      }
-
-      setWalletState(prev => ({
-        ...prev,
-        pendingTransactions: prev.pendingTransactions.map(tx =>
-          tx.id === transactionId ? { ...tx, status: 'approved' } : tx
-        )
-      }));
-
-      toast({
-        title: 'Transaction Approved',
-        description: 'The transaction has been approved and will be processed.',
-      });
-
-      // Refresh balance after successful transaction
-      await refreshBalance();
-    } catch (error) {
-      console.error('Transaction approval error:', error);
-      toast({
-        title: 'Approval Error',
-        description: 'Failed to approve transaction',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const rejectTransaction = async (transactionId: string) => {
-    if (!wallet) return;
-
-    try {
-      const response = await fetch('/api/cdp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          type: 'mpc_reject',
-          transactionId,
-          walletAddress: walletState.address
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to reject transaction');
-      }
-
-      setWalletState(prev => ({
-        ...prev,
-        pendingTransactions: prev.pendingTransactions.map(tx =>
-          tx.id === transactionId ? { ...tx, status: 'rejected' } : tx
-        )
-      }));
-
-      toast({
-        title: 'Transaction Rejected',
-        description: 'The transaction has been rejected.',
-      });
-    } catch (error) {
-      console.error('Transaction rejection error:', error);
-      toast({
-        title: 'Rejection Error',
-        description: 'Failed to reject transaction',
         variant: 'destructive'
       });
     }
@@ -340,46 +206,6 @@ const MPCWallet: React.FC = () => {
                     Refresh
                   </Button>
                 </p>
-              </div>
-
-              <div className="mt-6">
-                <h3 className="text-lg font-medium">Pending Transactions</h3>
-                <div className="mt-2 space-y-4">
-                  {walletState.pendingTransactions
-                    .filter(tx => tx.status === 'pending')
-                    .map(tx => (
-                      <Card key={tx.id} className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium">To: {tx.to}</p>
-                            <p className="text-sm text-gray-500">Amount: {tx.amount} ETH</p>
-                            <p className="text-sm text-gray-500">
-                              Created: {new Date(tx.createdAt).toLocaleString()}
-                            </p>
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button
-                              onClick={() => approveTransaction(tx.id)}
-                              variant="default"
-                              size="sm"
-                            >
-                              Approve
-                            </Button>
-                            <Button
-                              onClick={() => rejectTransaction(tx.id)}
-                              variant="destructive"
-                              size="sm"
-                            >
-                              Reject
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  {walletState.pendingTransactions.filter(tx => tx.status === 'pending').length === 0 && (
-                    <p className="text-sm text-gray-500">No pending transactions</p>
-                  )}
-                </div>
               </div>
 
               <div className="flex space-x-4 mt-6">

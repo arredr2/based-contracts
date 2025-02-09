@@ -1,30 +1,29 @@
+// src/app/api/cdp/route.ts
 import { NextResponse } from 'next/server';
 import { type NextRequest } from 'next/server';
 
 const CDP_API_BASE_URL = 'https://api.cdp.coinbase.com';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
-) {
-  return handleRequest(request, params.path, 'GET');
+export async function GET(request: NextRequest) {
+  return handleRequest(request, 'GET');
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
-) {
-  return handleRequest(request, params.path, 'POST');
+export async function POST(request: NextRequest) {
+  return handleRequest(request, 'POST');
 }
 
 async function handleRequest(
   request: NextRequest,
-  paths: string[],
   method: 'GET' | 'POST'
 ) {
   try {
-    const apiPath = paths.join('/');
-    const url = `${CDP_API_BASE_URL}/${apiPath}`;
+    // Get the path from the URL
+    const url = new URL(request.url);
+    const pathSegments = url.pathname.split('/').filter(Boolean);
+    // Remove 'api' and 'cdp' from the path
+    const apiPath = pathSegments.slice(2).join('/');
+    
+    const cdpUrl = `${CDP_API_BASE_URL}/${apiPath}`;
 
     const headers = {
       'Content-Type': 'application/json',
@@ -42,7 +41,7 @@ async function handleRequest(
       requestOptions.body = JSON.stringify(body);
     }
 
-    const response = await fetch(url, requestOptions);
+    const response = await fetch(cdpUrl, requestOptions);
     const data = await response.json();
 
     if (!response.ok) {

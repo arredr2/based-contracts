@@ -1,8 +1,12 @@
+// src/components/forms/ContractorProfileForm.tsx
 'use client';
 
 import React, { useState } from 'react';
 import { useAccount } from 'wagmi';
-import { Card, CardContent, CardHeader, CardTitle, Button, Alert, AlertDescription, useToast } from '@/components/ui';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { Input } from '@/components/ui';
+import { Alert, AlertDescription, useToast } from '@/components/ui';
 import { Loader2 } from 'lucide-react';
 
 interface ContractorProfileFormProps {
@@ -11,11 +15,12 @@ interface ContractorProfileFormProps {
   onComplete: () => void;
 }
 
-const ContractorProfileForm = ({
+export const ContractorProfileForm: React.FC<ContractorProfileFormProps> = ({
   inviteId,
   clientAddress,
   onComplete
-}: ContractorProfileFormProps) => {
+}) => {
+  // Rest of your component code stays the same
   const { address } = useAccount();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -188,4 +193,5 @@ const ContractorProfileForm = ({
   );
 };
 
+// Add a default export
 export default ContractorProfileForm;

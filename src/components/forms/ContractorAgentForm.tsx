@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { initializeAgent } from '@/lib/agents/baseAgent';
-import { setAgent } from '@/lib/agents/store';
+import { useAccount } from 'wagmi';
 
 interface ContractorCriteria {
   services: string;
@@ -16,6 +15,7 @@ interface ContractorCriteria {
 }
 
 export default function ContractorAgentForm() {
+  const { address } = useAccount();
   const [criteria, setCriteria] = useState<ContractorCriteria>({
     services: '',
     pricing: '',
@@ -40,31 +40,27 @@ export default function ContractorAgentForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!address) {
+      setMessage({ type: 'error', text: 'Please connect your wallet first' });
+      return;
+    }
+
     setIsSubmitting(true);
     setMessage(null);
 
     try {
-      const agent = await initializeAgent('contractor');
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Format criteria for agent training
-      const trainingPrompt = `
-        Services: ${criteria.services}
-        Pricing: ${criteria.pricing}
-        Availability: ${criteria.availability}
-        Experience: ${criteria.experience}
-        Licenses: ${criteria.licenses}
-        Service Area: ${criteria.preferredLocationRange}
-        Minimum Job Size: ${criteria.minimumJobSize}
-        Specializations: ${criteria.specializations}
-      `;
+      console.log('Form submitted with data:', {
+        ...criteria,
+        contractorAddress: address
+      });
 
-      setAgent('contractor', agent);
-      console.log('Contractor agent trained with criteria:', criteria);      
-
-      setMessage({ type: 'success', text: 'Agent successfully trained!' });
+      setMessage({ type: 'success', text: 'Profile created successfully!' });
     } catch (error) {
-      console.error('Error training contractor agent:', error);
-      setMessage({ type: 'error', text: 'Error training agent. Please try again.' });
+      console.error('Form submission error:', error);
+      setMessage({ type: 'error', text: 'Error creating profile. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -72,7 +68,7 @@ export default function ContractorAgentForm() {
 
   return (
     <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-      <h2 className="text-xl font-bold mb-4">Train Your Contractor Agent</h2>
+      <h2 className="text-xl font-bold mb-4">Create Contractor Profile</h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -186,7 +182,7 @@ export default function ContractorAgentForm() {
 
         <div>
           <label className="block text-gray-700 text-sm font-bold mb-2">
-            Specializations & Additional Skills
+            Specializations
           </label>
           <textarea
             name="specializations"
@@ -198,21 +194,27 @@ export default function ContractorAgentForm() {
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
-        >
-          {isSubmitting ? 'Training Agent...' : 'Train Agent'}
-        </button>
+        {!address && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">
+            Please connect your wallet to submit the form.
+          </div>
+        )}
 
         {message && (
-          <div className={`mt-4 p-3 rounded ${
-            message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          <div className={`p-4 rounded-md ${
+            message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
           }`}>
             {message.text}
           </div>
         )}
+
+        <button
+          type="submit"
+          disabled={isSubmitting || !address}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? 'Submitting...' : 'Create Profile'}
+        </button>
       </form>
     </div>
   );

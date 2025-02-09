@@ -1,8 +1,8 @@
-import { CdpToolkit } from "@coinbase/cdp-langchain";
+import { BaseAgent } from './baseAgent';
 
 type AgentStore = {
-  clientAgent: CdpToolkit | null;
-  contractorAgent: CdpToolkit | null;
+  clientAgent: BaseAgent | null;
+  contractorAgent: BaseAgent | null;
 };
 
 let agents: AgentStore = {
@@ -10,10 +10,10 @@ let agents: AgentStore = {
   contractorAgent: null,
 };
 
-export const setAgent = (type: 'client' | 'contractor', agent: CdpToolkit) => {
+export const setAgent = (type: 'client' | 'contractor', agent: BaseAgent) => {
   agents[`${type}Agent`] = agent;
 };
 
-export const getAgent = (type: 'client' | 'contractor') => {
+export const getAgent = (type: 'client' | 'contractor'): BaseAgent | null => {
   return agents[`${type}Agent`];
 };

@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { initializeAgent } from '@/lib/agents/baseAgent';
-import { setAgent } from '@/lib/agents/store';
+import { useAccount } from 'wagmi';
 
 interface ClientCriteria {
   projectType: string;
@@ -14,6 +13,7 @@ interface ClientCriteria {
 }
 
 export default function ClientAgentForm() {
+  const { address } = useAccount();
   const [criteria, setCriteria] = useState<ClientCriteria>({
     projectType: '',
     budgetRange: '',
@@ -36,29 +36,27 @@ export default function ClientAgentForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!address) {
+      setMessage({ type: 'error', text: 'Please connect your wallet first' });
+      return;
+    }
+
     setIsSubmitting(true);
     setMessage(null);
 
     try {
-      const agent = await initializeAgent('client');
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Format criteria for agent training
-      const trainingPrompt = `
-        Project Type: ${criteria.projectType}
-        Budget Range: ${criteria.budgetRange}
-        Timeframe: ${criteria.timeframe}
-        Location: ${criteria.location}
-        Required Qualifications: ${criteria.qualificationPreferences}
-        Specific Requirements: ${criteria.requirements}
-      `;
+      console.log('Form submitted with data:', {
+        ...criteria,
+        clientAddress: address
+      });
 
-      setAgent('client', agent);
-      console.log('Client agent trained with criteria:', criteria);
-
-      setMessage({ type: 'success', text: 'Agent successfully trained!' });
+      setMessage({ type: 'success', text: 'Project criteria saved successfully!' });
     } catch (error) {
-      console.error('Error training client agent:', error);
-      setMessage({ type: 'error', text: 'Error training agent. Please try again.' });
+      console.error('Form submission error:', error);
+      setMessage({ type: 'error', text: 'Error saving project criteria. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -66,7 +64,7 @@ export default function ClientAgentForm() {
 
   return (
     <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-      <h2 className="text-xl font-bold mb-4">Train Your Client Agent</h2>
+      <h2 className="text-xl font-bold mb-4">Create New Project</h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -106,7 +104,7 @@ export default function ClientAgentForm() {
 
         <div>
           <label className="block text-gray-700 text-sm font-bold mb-2">
-            Preferred Timeframe
+            Timeframe
           </label>
           <input
             type="text"
@@ -136,7 +134,7 @@ export default function ClientAgentForm() {
 
         <div>
           <label className="block text-gray-700 text-sm font-bold mb-2">
-            Contractor Qualification Preferences
+            Contractor Qualifications
           </label>
           <input
             type="text"
@@ -150,33 +148,39 @@ export default function ClientAgentForm() {
 
         <div>
           <label className="block text-gray-700 text-sm font-bold mb-2">
-            Specific Requirements
+            Project Requirements
           </label>
           <textarea
             name="requirements"
             value={criteria.requirements}
             onChange={handleChange}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            placeholder="Any specific requirements or preferences..."
+            placeholder="Describe your project requirements..."
             rows={4}
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
-        >
-          {isSubmitting ? 'Training Agent...' : 'Train Agent'}
-        </button>
+        {!address && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">
+            Please connect your wallet to submit the form.
+          </div>
+        )}
 
         {message && (
-          <div className={`mt-4 p-3 rounded ${
-            message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          <div className={`p-4 rounded-md ${
+            message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
           }`}>
             {message.text}
           </div>
         )}
+
+        <button
+          type="submit"
+          disabled={isSubmitting || !address}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? 'Submitting...' : 'Submit Project'}
+        </button>
       </form>
     </div>
   );

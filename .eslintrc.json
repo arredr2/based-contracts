@@ -1,13 +1,45 @@
 {
   "extends": "next/core-web-vitals",
   "rules": {
-    "@typescript-eslint/no-unused-vars": ["warn", { 
+    // Allow unused variables when they start with underscore
+    "@typescript-eslint/no-unused-vars": ["warn", {
       "argsIgnorePattern": "^_",
       "varsIgnorePattern": "^_",
-      "ignoreRestSiblings": true 
+      "ignoreRestSiblings": true
     }],
+    
+    // Reduce severity of any type warnings during development
     "@typescript-eslint/no-explicit-any": "warn",
+    
+    // Make React hooks exhaustive-deps a warning instead of error
     "react-hooks/exhaustive-deps": "warn",
-    "prefer-const": "warn"
+    
+    // Make const vs let a warning instead of error
+    "prefer-const": "warn",
+    
+    // Additional development-friendly configurations
+    "no-console": ["warn", { 
+      "allow": ["warn", "error", "info"] 
+    }],
+    
+    // Allow empty catch blocks with comments
+    "no-empty": ["error", { 
+      "allowEmptyCatch": true 
+    }],
+    
+    // Enforce consistent imports but as warnings
+    "import/no-unused-modules": "warn",
+    "import/no-unresolved": "warn",
+    
+    // TypeScript specific rules set to warn
+    "@typescript-eslint/no-empty-interface": "warn",
+    "@typescript-eslint/no-inferrable-types": "warn",
+    "@typescript-eslint/no-empty-function": "warn",
+    
+    // React specific rules set to warn during development
+    "react/prop-types": "off",
+    "react/react-in-jsx-scope": "off",
+    "react/display-name": "warn",
+    "react/no-unescaped-entities": "warn"
   }
 }

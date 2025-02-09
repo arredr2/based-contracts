@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAccount, useBalance, useNetwork } from 'wagmi';
+import { useAccount, useBalance, useChainId } from 'wagmi';
 import { parseEther } from 'viem';
 import { base } from 'viem/chains';
 import { FundButton, getOnrampBuyUrl } from '@coinbase/onchainkit/fund';
@@ -14,7 +14,7 @@ const PaymentFlow = ({
   projectDescription 
 }) => {
   const { address } = useAccount();
-  const { chain } = useNetwork();
+  const { chainId } = useChainId();
   const [paymentStatus, setPaymentStatus] = useState('initial');
   const [isFunding, setIsFunding] = useState(false);
 

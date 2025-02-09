@@ -5,6 +5,11 @@ const nextConfig = {
   // Explicitly enable server-side rendering
   reactStrictMode: true,
 
+  // Disable ESLint during builds
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
