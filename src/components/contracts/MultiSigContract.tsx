@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
-import { MPCWallet } from '@/components/wallet/MPCWallet';
 
 interface Signature {
   signer: string;
@@ -52,21 +51,6 @@ const MultiSigContract: React.FC<MultiSigContractProps> = ({
     setError(null);
 
     try {
-      // Get MPC wallet instance
-      const mpcWallet = await window.mpcWallet.getWallet();
-
-      // Create signature payload
-      const signaturePayload = {
-        contractId,
-        signer: address,
-        timestamp: Date.now()
-      };
-
-      // Sign with MPC wallet
-      const signature = await mpcWallet.signMessage(
-        JSON.stringify(signaturePayload)
-      );
-
       // Update signatures state
       setSignatures(prev => ({
         ...prev,
@@ -195,7 +179,7 @@ const MultiSigContract: React.FC<MultiSigContractProps> = ({
             </div>
           )}
 
-          {/* Status Message */}
+          {/* Status Messages */}
           {(allSigned || hasRejection || hasSigned) && (
             <Alert variant={hasRejection ? 'destructive' : 'default'}>
               <AlertDescription>
@@ -206,14 +190,6 @@ const MultiSigContract: React.FC<MultiSigContractProps> = ({
                   : 'Waiting for other signatures...'}
               </AlertDescription>
             </Alert>
-          )}
-
-          {/* MPC Wallet Integration */}
-          {canSign && !hasSigned && (
-            <div className="mt-6">
-              <h3 className="text-sm font-medium mb-2">Your MPC Wallet</h3>
-              <MPCWallet />
-            </div>
           )}
         </div>
       </CardContent>

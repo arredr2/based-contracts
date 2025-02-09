@@ -1,10 +1,7 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
-import { useAccount, useBalance, useChainId } from 'wagmi';
+import React, { useState } from 'react';
+import { useAccount, useBalance, useNetwork } from 'wagmi';
 import { parseEther } from 'viem';
 import { base } from 'viem/chains';
-import { FundButton, getOnrampBuyUrl } from '@coinbase/onchainkit/fund';
 import { Loader2 } from 'lucide-react';
 
 const PaymentFlow = ({ 
@@ -14,9 +11,8 @@ const PaymentFlow = ({
   projectDescription 
 }) => {
   const { address } = useAccount();
-  const { chainId } = useChainId();
+  const { chain } = useNetwork();
   const [paymentStatus, setPaymentStatus] = useState('initial');
-  const [isFunding, setIsFunding] = useState(false);
 
   // Get user's current balance
   const { data: balance } = useBalance({
@@ -27,27 +23,10 @@ const PaymentFlow = ({
   // Check if user has sufficient balance
   const hasBalance = balance?.value >= parseEther(amount);
 
-  // Generate custom onramp URL with predefined amount
-  const onrampUrl = getOnrampBuyUrl({
-    projectId: process.env.NEXT_PUBLIC_CDP_PROJECT_ID,
-    addresses: { [address]: [chain?.id.toString()] },
-    assets: ['ETH'],
-    presetFiatAmount: Number(amount) * 2000, // Rough ETH to USD conversion for example
-    fiatCurrency: 'USD'
-  });
-
-  // Handle funding complete
-  const handleFundingComplete = () => {
-    setIsFunding(false);
-    if (hasBalance) {
-      setPaymentStatus('ready');
-    }
-  };
-
   // Initialize payment flow
   const initializePayment = async () => {
     if (!hasBalance) {
-      setIsFunding(true);
+      setPaymentStatus('insufficient');
     } else {
       setPaymentStatus('ready');
     }
@@ -58,8 +37,8 @@ const PaymentFlow = ({
     try {
       setPaymentStatus('processing');
       
-      // This would integrate with your CreateAgreementForm logic
-      // Call your smart contract here
+      // This would integrate with your smart contract
+      // Add your contract interaction logic here
       
       setPaymentStatus('completed');
       onPaymentComplete?.();
@@ -68,13 +47,6 @@ const PaymentFlow = ({
       setPaymentStatus('error');
     }
   };
-
-  // Watch for balance changes
-  useEffect(() => {
-    if (hasBalance && isFunding) {
-      handleFundingComplete();
-    }
-  }, [hasBalance, isFunding]);
 
   return (
     <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
@@ -95,39 +67,16 @@ const PaymentFlow = ({
           </div>
         </div>
 
-        {/* Fund Button Integration */}
-        {isFunding && (
-          <div className="border rounded-lg p-4">
-            <h3 className="font-semibold mb-2">Add Funds to Your Wallet</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Choose your preferred method to add funds:
-            </p>
-            <div className="flex flex-col gap-4">
-              <FundButton 
-                fundingUrl={onrampUrl}
-                text="Buy ETH with Card or Bank"
-                openIn="popup"
-              />
-              <FundButton 
-                text="Transfer from Coinbase"
-                hideIcon={false}
-              />
-            </div>
-            <button
-              onClick={() => setIsFunding(false)}
-              className="mt-4 text-sm text-gray-500 hover:text-gray-700"
-            >
-              Cancel
-            </button>
+        {/* Status Messages */}
+        {paymentStatus === 'insufficient' && (
+          <div className="bg-red-50 text-red-700 p-4 rounded-md">
+            <p>Insufficient balance to complete this payment.</p>
           </div>
         )}
 
-        {/* Status Messages */}
         {paymentStatus === 'error' && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-            <p className="text-sm">
-              There was an error processing your payment. Please try again.
-            </p>
+          <div className="bg-red-50 text-red-700 p-4 rounded-md">
+            <p>There was an error processing your payment. Please try again.</p>
           </div>
         )}
 
@@ -155,7 +104,7 @@ const PaymentFlow = ({
           {paymentStatus === 'processing' && (
             <button
               disabled
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md flex items-center justify-center"
             >
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Processing Payment
@@ -165,10 +114,8 @@ const PaymentFlow = ({
 
         {/* Success Message */}
         {paymentStatus === 'completed' && (
-          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md">
-            <p className="text-sm">
-              Payment completed successfully!
-            </p>
+          <div className="bg-green-50 text-green-800 p-4 rounded-md">
+            <p>Payment completed successfully!</p>
           </div>
         )}
       </div>

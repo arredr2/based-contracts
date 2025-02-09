@@ -1,172 +1,219 @@
 import React, { useState } from 'react';
 import { useAccount } from 'wagmi';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Steps, StepItem } from '@/components/ui/steps';
-import ContractTemplateSystem from './ContractTemplateSystem';
-import ContractReview from './ContractReview';
-import MultiSigContract from './MultiSigContract';
-
-type WorkflowStep = 'template' | 'review' | 'signatures' | 'complete';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Steps, type StepItem } from '@/components/ui/Steps';
+import { ContractAgreementForm } from '../forms/ContractAgreementForm';
+import { ContractPaymentFlow } from '../payment/ContractPaymentFlow';
+import { Loader2, CheckCircle2 } from 'lucide-react';
 
 interface ContractData {
-  template: string;
-  sections: Record<string, string>;
-  clientAddress: string;
   contractorAddress: string;
-  timestamp: number;
+  description: string;
+  amount: string;
+  duration?: string;
+  milestones?: string;
 }
 
-const ContractWorkflow = () => {
+const STEPS: StepItem[] = [
+  {
+    id: 'details',
+    title: 'Contract Details',
+    description: 'Define the project scope and terms',
+    status: 'current'
+  },
+  {
+    id: 'review',
+    title: 'Review',
+    description: 'Review contract details',
+    status: 'upcoming'
+  },
+  {
+    id: 'payment',
+    title: 'Payment',
+    description: 'Complete the payment',
+    status: 'upcoming'
+  },
+  {
+    id: 'confirmation',
+    title: 'Confirmation',
+    description: 'Contract created',
+    status: 'upcoming'
+  }
+];
+
+export default function ContractWorkflow() {
   const { address } = useAccount();
-  const [currentStep, setCurrentStep] = useState<WorkflowStep>('template');
+  const [currentStep, setCurrentStep] = useState('details');
+  const [isProcessing, setIsProcessing] = useState(false);
   const [contractData, setContractData] = useState<ContractData | null>(null);
-  const [reviewFeedback, setReviewFeedback] = useState<string | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [transactionHash, setTransactionHash] = useState<string | null>(null);
 
-  const handleTemplateSelect = (template) => {
-    setSelectedTemplate(template);
-  };
-
-  const handleTemplateGenerate = (templateData) => {
-    setContractData({
-      ...templateData,
-      clientAddress: address!,
-      timestamp: Date.now(),
-    });
+  const handleContractSubmit = (data: ContractData) => {
+    setContractData(data);
     setCurrentStep('review');
   };
 
-  const handleReviewComplete = (approved: boolean, feedback?: string) => {
+  const handleReview = (approved: boolean) => {
     if (approved) {
-      setCurrentStep('signatures');
+      setCurrentStep('payment');
     } else {
-      setReviewFeedback(feedback || null);
-      setCurrentStep('template');
+      setCurrentStep('details');
     }
   };
 
-  const handleSignaturesComplete = (success: boolean) => {
-    if (success) {
-      setCurrentStep('complete');
+  const handlePaymentComplete = (success: boolean, txHash?: string) => {
+    if (success && txHash) {
+      setTransactionHash(txHash);
+      setCurrentStep('confirmation');
+    } else {
+      setError('Payment failed. Please try again.');
     }
   };
 
-  const getRequiredSigners = () => {
-    if (!contractData) return [];
-    return [contractData.clientAddress, contractData.contractorAddress];
+  const getUpdatedSteps = () => {
+    const currentIndex = STEPS.findIndex(step => step.id === currentStep);
+    
+    return STEPS.map((step, index) => ({
+      ...step,
+      status: index < currentIndex ? 'complete' : 
+              index === currentIndex ? 'current' : 'upcoming'
+    }));
   };
 
   const renderCurrentStep = () => {
     switch (currentStep) {
-      case 'template':
+      case 'details':
         return (
-          <ContractTemplateSystem
-            onTemplateSelect={handleTemplateSelect}
-            onGenerateContract={handleTemplateGenerate}
-            selectedTemplate={selectedTemplate}
-            previousFeedback={reviewFeedback}
+          <ContractAgreementForm 
+            onSubmit={handleContractSubmit}
+            initialData={contractData}
           />
         );
 
       case 'review':
         return contractData ? (
-          <ContractReview
-            contractData={contractData}
-            onApprove={() => handleReviewComplete(true)}
-            onRequestChanges={(feedback) => handleReviewComplete(false, feedback)}
-          />
-        ) : null;
-
-      case 'signatures':
-        return contractData ? (
-          <MultiSigContract
-            contractId={`${contractData.template}-${contractData.timestamp}`}
-            requiredSigners={getRequiredSigners()}
-            onComplete={handleSignaturesComplete}
-          />
-        ) : null;
-
-      case 'complete':
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Contract Completed</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <p className="text-green-600">
-                  Contract has been successfully created and signed by all parties!
-                </p>
-                <Button
-                  onClick={() => {
-                    setCurrentStep('template');
-                    setContractData(null);
-                    setReviewFeedback(null);
-                    setSelectedTemplate(null);
-                  }}
-                >
-                  Create New Contract
-                </Button>
+          <div className="space-y-6">
+            <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Contractor Address</h3>
+                <p className="mt-1 font-mono">{contractData.contractorAddress}</p>
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Amount</h3>
+                <p className="mt-1">{contractData.amount} ETH</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Description</h3>
+                <p className="mt-1">{contractData.description}</p>
+              </div>
+              {contractData.duration && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Duration</h3>
+                  <p className="mt-1">{contractData.duration} days</p>
+                </div>
+              )}
+              {contractData.milestones && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Milestones</h3>
+                  <p className="mt-1 whitespace-pre-line">{contractData.milestones}</p>
+                </div>
+              )}
+            </div>
+            <div className="flex space-x-4 justify-end">
+              <Button variant="outline" onClick={() => handleReview(false)}>
+                Edit Details
+              </Button>
+              <Button onClick={() => handleReview(true)}>
+                Proceed to Payment
+              </Button>
+            </div>
+          </div>
+        ) : null;
+
+      case 'payment':
+        return contractData ? (
+          <ContractPaymentFlow
+            contractData={contractData}
+            onComplete={handlePaymentComplete}
+          />
+        ) : null;
+
+      case 'confirmation':
+        return (
+          <div className="text-center space-y-4">
+            <div className="flex justify-center">
+              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle2 className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900">
+              Contract Created Successfully!
+            </h3>
+            <p className="text-sm text-gray-500">
+              Your contract has been created and payment has been processed.
+            </p>
+            {transactionHash && (
+              <div className="text-sm text-gray-500 font-mono break-all">
+                Transaction: {transactionHash}
+              </div>
+            )}
+            <Button
+              onClick={() => {
+                setCurrentStep('details');
+                setContractData(null);
+                setTransactionHash(null);
+              }}
+              className="mt-4"
+            >
+              Create Another Contract
+            </Button>
+          </div>
         );
+
+      default:
+        return null;
     }
   };
 
-  const steps: StepItem[] = [
-    {
-      id: 'template',
-      title: 'Create Contract',
-      description: 'Select and customize contract template',
-      status: currentStep === 'template' ? 'current' 
-        : currentStep === 'review' || currentStep === 'signatures' || currentStep === 'complete' 
-        ? 'complete' : 'upcoming'
-    },
-    {
-      id: 'review',
-      title: 'AI Review',
-      description: 'Review and analyze contract terms',
-      status: currentStep === 'review' ? 'current'
-        : currentStep === 'signatures' || currentStep === 'complete'
-        ? 'complete' : 'upcoming'
-    },
-    {
-      id: 'signatures',
-      title: 'Collect Signatures',
-      description: 'Gather required signatures',
-      status: currentStep === 'signatures' ? 'current'
-        : currentStep === 'complete'
-        ? 'complete' : 'upcoming'
-    },
-    {
-      id: 'complete',
-      title: 'Complete',
-      description: 'Contract finalized',
-      status: currentStep === 'complete' ? 'complete' : 'upcoming'
-    }
-  ];
+  if (!address) {
+    return (
+      <Alert>
+        <AlertDescription>
+          Please connect your wallet to create a contract agreement.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      {/* Progress Steps */}
-      <Steps items={steps} />
+    <div className="max-w-4xl mx-auto space-y-8">
+      <Steps items={getUpdatedSteps()} />
 
-      {/* Current Step Content */}
-      <div className="mt-8">
-        {renderCurrentStep()}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {STEPS.find(step => step.id === currentStep)?.title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isProcessing ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : (
+            renderCurrentStep()
+          )}
 
-      {/* Previous Feedback Alert */}
-      {currentStep === 'template' && reviewFeedback && (
-        <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-          <h3 className="font-medium text-yellow-800">Previous Review Feedback</h3>
-          <p className="mt-1 text-sm text-yellow-700">{reviewFeedback}</p>
-        </div>
-      )}
+          {error && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default ContractWorkflow;
+}

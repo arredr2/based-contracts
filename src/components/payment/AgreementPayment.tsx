@@ -3,8 +3,8 @@ import { useAccount, useBalance, useWriteContract } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2 } from 'lucide-react';
 
-// PaymentFlow Component
 const PaymentFlow = ({ 
   contractorAddress, 
   amount, 
@@ -111,13 +111,19 @@ const PaymentFlow = ({
         disabled={isProcessing || !hasSufficientBalance}
         className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isProcessing ? 'Processing...' : 'Confirm Payment'}
+        {isProcessing ? (
+          <div className="flex items-center justify-center">
+            <Loader2 className="animate-spin mr-2" />
+            Processing...
+          </div>
+        ) : (
+          'Confirm Payment'
+        )}
       </button>
     </div>
   );
 };
 
-// Main AgreementPayment Component
 const AgreementPayment = ({ contractorData, onComplete }) => {
   const [step, setStep] = useState('review'); // 'review' | 'payment' | 'complete'
   const [transactionHash, setTransactionHash] = useState('');
@@ -130,7 +136,6 @@ const AgreementPayment = ({ contractorData, onComplete }) => {
 
   const handlePaymentError = (error) => {
     console.error('Payment failed:', error);
-    // You might want to handle this error in the UI
   };
 
   return (

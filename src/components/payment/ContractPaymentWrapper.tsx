@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState } from 'react';
 import { useAccount } from 'wagmi';
 import CreateAgreementForm from '@/components/forms/CreateAgreementForm';

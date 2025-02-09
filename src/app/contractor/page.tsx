@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import ContractorAgentForm from '@/components/forms/ContractorAgentForm';
@@ -7,7 +6,6 @@ import ContractorAgentForm from '@/components/forms/ContractorAgentForm';
 export default function ContractorPage() {
   const { address } = useAccount();
   const [showForm, setShowForm] = useState(false);
-
   return (
     <div className="min-h-[calc(100vh-8rem)]">
       {!showForm ? (
@@ -30,7 +28,6 @@ export default function ContractorPage() {
               </button>
             </div>
           </div>
-
           {/* Main Content */}
           <div className="col-span-2 bg-white shadow rounded-lg p-6">
             <h1 className="text-2xl font-bold mb-6">Contractor Dashboard</h1>
@@ -56,7 +53,7 @@ export default function ContractorPage() {
               ← Back to Dashboard
             </button>
           </div>
-          <div className="p-6">
+          <div className="p-6 space-y-6">
             <ContractorAgentForm />
           </div>
         </div>
